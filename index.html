@@ -357,53 +357,59 @@
 
         }
 
-        function loadChat() {
-            const chatMessages = document.getElementById('chatMessages');
-            chatMessages.innerHTML = '';
+        let currentListener = null; // Variable to store the reference to the listener
 
-            if (currentChannel) {
-                // Fetch and display messages for the current channel
-                db.collection("channels").doc(currentChannel).collection("messages").onSnapshot((snapshot) => {
-                    snapshot.docChanges().forEach((change) => {
-                        if (change.type === "added") {
-                            const messageData = change.doc.data();
-                            const messageElement = document.createElement('div');
-											
-							if (messageData.text == undefined) {
-								messageElement.textContent = "(user)" + " " + messageData.username + ": ";
-							} else {
-								messageElement.textContent = "(user)" + " " + messageData.username + ": " + messageData.text;
-							}
-                            
-							const userLogo = document.createElement('img');
-                                userLogo.src = "user.png";
-                                userLogo.style.height = '1rem';
-								userLogo.style.position = "relative";
-								userLogo.style.top = "0.1rem";
-                                
-                                messageElement.appendChild(userLogo);
-                            if (messageData.type === 'image') {
-                                const imageElement = document.createElement('img');
-                                imageElement.src = messageData.url;
-                                imageElement.style.maxWidth = '100%';
-                                // Add click event listener to display lightbox
-                                imageElement.addEventListener('click', function() {
-                                    displayLightbox(messageData.url);
-                                });
-                                messageElement.appendChild(imageElement);
-                            }
-                            chatMessages.appendChild(messageElement);
-							
-							setTimeout(function() {
-				scrollToBottom();
-			},10);
-							
-							
-                        }
-                    });
-                });
-            }
+function loadChat() {
+    const chatMessages = document.getElementById('chatMessages');
+    chatMessages.innerHTML = '';
+
+    if (currentChannel) {
+        // Unsubscribe from the previous listener, if it exists
+        if (currentListener) {
+            currentListener();
         }
+
+        // Fetch and display messages for the current channel
+        currentListener = db.collection("channels").doc(currentChannel).collection("messages").onSnapshot((snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === "added") {
+                    const messageData = change.doc.data();
+                    const messageElement = document.createElement('div');
+										
+                    if (messageData.text == undefined) {
+                        messageElement.textContent = "(user)" + " " + messageData.username + ": ";
+                    } else {
+                        messageElement.textContent = "(user)" + " " + messageData.username + ": " + messageData.text;
+                    }
+                            
+                    const userLogo = document.createElement('img');
+                    userLogo.src = "user.png";
+                    userLogo.style.height = '1rem';
+                    userLogo.style.position = "relative";
+                    userLogo.style.top = "0.1rem";
+                                
+                    messageElement.appendChild(userLogo);
+                    if (messageData.type === 'image') {
+                        const imageElement = document.createElement('img');
+                        imageElement.src = messageData.url;
+                        imageElement.style.maxWidth = '100%';
+                        // Add click event listener to display lightbox
+                        imageElement.addEventListener('click', function() {
+                            displayLightbox(messageData.url);
+                        });
+                        messageElement.appendChild(imageElement);
+                    }
+                    chatMessages.appendChild(messageElement);
+					
+                    setTimeout(function() {
+                        scrollToBottom();
+                    },10);
+                }
+            });
+        });
+    }
+}
+
         function sendMessage() {
             const chatText = document.getElementById('chatText').value;
 
