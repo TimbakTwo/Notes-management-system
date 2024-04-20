@@ -181,6 +181,7 @@
 		
         function selectChannel(channelName) {
             currentChannel = channelName;
+			currentQuarter = 1;
 			document.getElementById('currentSubject').innerHTML = `Notes For ${currentChannel}'s Subject (${currentQuarter === 1 ? '1st quarter' : currentQuarter === 2 ? '2nd quarter' : currentQuarter === 3 ? '3rd quarter' : currentQuarter === 4 ? '4th quarter' : 'Unknown quarter'})`;
             loadChat();
 			
