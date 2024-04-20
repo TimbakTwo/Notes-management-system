@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Class Notes Management System</title>
+    	<link rel="stylesheet" href="styles.css">
+	<link rel="stylesheet" href="login and register design.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+
+</head>
+
+<body>
+	<div class="background-image" style="background-image: url('dhs senior background one.jfif');"></div>
+
+	<center>
+    <h1 class="cnmsHeader">Class Notes Management System</h1>
+    </center>
+
+    
+    <div id="authForm" style="height: 40px; width: 0px; padding: 0">
+   
+	
+    <form id="loginForm">
+        <div class="input-group" style="display: flex; gap: 2rem">
+            <label for="username">Student name:</label>
+            <input type="text" id="username" required>
+        </div>
+        <div class="input-group" style="display: flex; gap: 2rem">
+            <label for="password">Password:</label>
+            <input type="password" id="password" required>
+        </div>
+        <div class="button-group">
+            <button type="button" class="log" onclick="login()">Login</button>
+            <button type="button" class="reg" onclick="register()">Register</button>
+        </div>
+    </form>
+</div>
+
+	<br><br><br><br><br><br><br><br><br><br><br><br><br>
+	<br><br><br><br><br><br><br><br><br><br><br>
+	<center><img src="dhs logo.png" id="dhsLogo"></center>
+
+
+    <div id="container">
+        <div id="channels">
+            <h3>Subjects list</h3>
+            <div id="channelList">
+                <!-- Channel list will be populated here -->
+            </div>
+            <input type="text" id="newChannel" placeholder="New subject name">
+            <button onclick="addChannel()">Add Subject</button>
+        </div>
+        <div id="chatArea">
+            <h3 id="currentSubject" >Choose your subject to View Notes</h3>
+			<div id="quartersList">
+				<button onclick="changeQuarter(1)">1st Quarter</button>
+				<button onclick="changeQuarter(2)">2nd Quarter</button>
+				<button onclick="changeQuarter(3)">3rd Quarter</button>
+				<button onclick="changeQuarter(4)">4th Quarter</button>
+			</div>
+            <div id="chatMessages">
+                <!-- Chat messages will be displayed here -->
+            </div>
+            <div id="chatInput">
+                <input type="text" id="chatText" placeholder="Type a message">
+                <button onclick="selectImage()">Add Image</button>
+                <input type="file" id="imageInput" style="display: none;" accept="image/*" multiple onchange="handleImageUpload(event)">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+	
+	 <!-- Lightbox container -->
+    <div id="lightbox" style="display: none;">
+        <span id="closeLightbox" style="position: fixed; top: 20px; right: 20px; cursor: pointer; z-index: 9999;">&times;</span>
+        <img id="lightboxImage" style="display: block; margin: 0 auto; max-width: 80%; max-height: 80%; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+    </div>
+    
+
+	<script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-auth-compat.js"></script>
+
+    <script>
+		let currentSubject = "";
+		let currentQuarter = 1;
+		
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIrmutNB8-NvwcTKN6-yDBPGy8rcyC96I",
+            authDomain: "notes-management-system-71bcc.firebaseapp.com",
+            projectId: "notes-management-system-71bcc",
+            storageBucket: "notes-management-system-71bcc.appspot.com",
+            messagingSenderId: "1001388345765",
+            appId: "1:1001388345765:web:666c8ffb7361fe7d6f804c"
+        };
+// Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let currentUser = null;
+        let currentChannel = null;
+
+        function checkAuth() {
+            if (!currentUser) {
+                document.getElementById('authForm').style.display = 'block';
+                document.getElementById('container').style.display = 'none';
+            } else {
+                document.getElementById('authForm').style.display = 'none';
+                document.getElementById('container').style.display = 'flex';
+                loadChannels();
+            }
+        }
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Check if user exists in Firestore
+            db.collection("users").doc(username).get().then((doc) => {
+                if (doc.exists && doc.data().password === password) {
+                    currentUser = doc.data();
+                    checkAuth();
+					document.getElementsByClassName('background-image')[0].style.display = "none";
+					document.getElementsByClassName('cnmsHeader')[0].style.opacity = "0";
+					document.getElementsByClassName('cnmsHeader')[0].style.marginBottom = "-30rem";
+					document.getElementById('dhsLogo').style.display = "none";
+                } else {
+                    alert('Invalid username or password');
+                }
+            }).catch((error) => {
+                console.log("Error getting document:", error);
+            });
+			
+			
+        }
+
+        function register() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Check if username already exists in Firestore
+            db.collection("users").doc(username).get().then((doc) => {
+                if (doc.exists) {
+                    alert('Username already taken');
+                } else {
+                    // Add new user to Firestore
+                    db.collection("users").doc(username).set({
+                        username: username,
+                        password: password,
+                        role: 'member' // Default role for new users
+                    }).then(() => {
+                        alert('User registered. You can now login.');
+                    }).catch((error) => {
+                        console.error("Error adding document: ", error);
+                    });
+                }
+            }).catch((error) => {
+                console.log("Error getting document:", error);
+            });
+        }
+
+        function loadChannels() {
+            const channelList = document.getElementById('channelList');
+
+            // Fetch channels from Firestore
+            db.collection("channels").onSnapshot((snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    if (change.type === "added") {
+                        const channelElement = document.createElement('div');
+                        channelElement.textContent = change.doc.data().name;
+                        channelElement.onclick = () => { selectChannel(change.doc.data().name); };
+                        channelList.appendChild(channelElement);
+						
+						
+						
+                    }
+                });
+            });
+        }
+
+        function addChannel() {
+            const newChannelName = document.getElementById('newChannel').value;
+
+            if (newChannelName) {
+                // Add new channel to Firestore
+                db.collection("channels").add({
+                    name: newChannelName
+                }).then(() => {
+                    document.getElementById('newChannel').value = '';
+                }).catch((error) => {
+                    console.error("Error adding document: ", error);
+                });
+            }
+        }
+	
+		
+		
+        function selectChannel(channelName) {
+            currentChannel = channelName;
+			currentQuarter = 1;
+			document.getElementById('currentSubject').innerHTML = `Notes For ${currentChannel}'s Subject (${currentQuarter === 1 ? '1st quarter' : currentQuarter === 2 ? '2nd quarter' : currentQuarter === 3 ? '3rd quarter' : currentQuarter === 4 ? '4th quarter' : 'Unknown quarter'})`;
+            loadChat();
+			
+			
+
+        }
+		
+		function changeQuarter(quarter) {
+			currentQuarter = quarter;
+			document.getElementById('currentSubject').innerHTML = `Notes For ${currentChannel}'s Subject (${currentQuarter === 1 ? '1st quarter' : currentQuarter === 2 ? '2nd quarter' : currentQuarter === 3 ? '3rd quarter' : currentQuarter === 4 ? '4th quarter' : 'Unknown quarter'})`;
+			loadChat();
+		}
+
+        let currentListener = null; // Variable to store the reference to the listener
+
+function loadChat() {
+    const chatMessages = document.getElementById('chatMessages');
+    chatMessages.innerHTML = '';
+
+    if (currentChannel) {
+        // Unsubscribe from the previous listener, if it exists
+        if (currentListener) {
+            currentListener();
+        }
+
+        // Fetch and display messages for the current channel
+        currentListener = db.collection("channels").doc(currentChannel).collection(`messages${currentQuarter}`).onSnapshot((snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === "added") {
+                    const messageData = change.doc.data();
+                    const messageElement = document.createElement('div');
+										
+                    if (messageData.text == undefined) {
+                        messageElement.textContent = "(student)" + " " + messageData.username + ": ";
+                    } else {
+                        messageElement.textContent = "(student)" + " " + messageData.username + ": " + messageData.text;
+                    }
+                            
+                    const userLogo = document.createElement('img');
+                    userLogo.src = "user.png";
+                    userLogo.style.height = '1rem';
+                    userLogo.style.position = "relative";
+                    userLogo.style.top = "0.1rem";
+                                
+                    messageElement.appendChild(userLogo);
+                    if (messageData.type === 'image') {
+                        const imageElement = document.createElement('img');
+                        imageElement.src = messageData.url;
+                        imageElement.style.maxWidth = '100%';
+                        // Add click event listener to display lightbox
+                        imageElement.addEventListener('click', function() {
+                            displayLightbox(messageData.url);
+                        });
+                        messageElement.appendChild(imageElement);
+                    }
+                    chatMessages.appendChild(messageElement);
+					
+                    setTimeout(function() {
+                        scrollToBottom();
+                    },10);
+                }
+            });
+        });
+    }
+}
+
+        function sendMessage() {
+            const chatText = document.getElementById('chatText').value;
+
+            if (chatText && currentChannel) {
+                // Add new message to Firestore
+                db.collection("channels").doc(currentChannel).collection(`messages${currentQuarter}`).add({
+                    username: currentUser.username,
+                    text: chatText
+                }).then(() => {
+                    document.getElementById('chatText').value = '';
+                }).catch((error) => {
+                    console.error("Error adding document: ", error);
+                });
+            }
+        }
+
+        // Function to handle file selection for images
+        function selectImage() {
+            const imageInput = document.getElementById('imageInput');
+            imageInput.click();
+        }
+
+function handleImageUpload(event) {
+            const files = event.target.files;
+
+            if (files.length > 0 && currentChannel) {
+                Array.from(files).forEach((file) => {
+                    if (file.size <= 1048487) { // Check image size
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            const dataUrl = e.target.result;
+
+                            db.collection("channels").doc(currentChannel).collection(`messages${currentQuarter}`).add({
+                                username: currentUser.username,
+                                type: 'image',
+                                url: dataUrl
+                            }).then(() => {
+                                // Image uploaded successfully
+                            }).catch((error) => {
+                                console.error("Error adding document: ", error);
+                            });
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        console.error("Image size exceeds the limit");
+                    }
+                });
+            }
+        }
+
+        checkAuth();
+		
+		
+		// Function to display the lightbox with the clicked image
+        function displayLightbox(imageUrl) {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImage = document.getElementById('lightboxImage');
+            const closeLightbox = document.getElementById('closeLightbox');
+
+            if (lightbox.style.display === 'block' && lightboxImage.src === imageUrl) {
+                lightbox.style.display = 'none';
+            } else {
+                lightboxImage.src = imageUrl;
+                lightbox.style.display = 'block';
+            }
+
+            // Close the lightbox when the close button is clicked
+            closeLightbox.onclick = function() {
+                lightbox.style.display = 'none';
+            };
+
+            // Close the lightbox when clicked outside the image
+            lightbox.onclick = function(event) {
+                if (event.target === lightbox) {
+                    lightbox.style.display = 'none';
+                }
+            };
+        }
+
+
+
+
+    </script>
+	
+	<script>
+		document.querySelector("#lightbox").addEventListener('click',function() {
+			document.querySelector("#lightbox").style.display = "none";
+		});
+		
+		function scrollToBottom() {
+    window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'smooth' // This provides a smooth scroll effect
+    });
+}
+		
+	</script>
+
+</body>
+
+</html>
