@@ -5,30 +5,40 @@
     <title>Class Notes Management System</title>
     	<link rel="stylesheet" href="styles.css">
 	<link rel="stylesheet" href="login and register design.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+
 </head>
 
 <body>
+	<div class="background-image" style="background-image: url('dhs senior background one.jfif');"></div>
 
-    <h1>Class Notes Management System</h1>
+	<center>
+    <h1 class="cnmsHeader">Class Notes Management System</h1>
+    </center>
 
     
-    <div id="authForm">
-    <h2>Login/Register</h2>
+    <div id="authForm" style="height: 40px; width: 0px; padding: 0">
+   
+	
     <form id="loginForm">
-        <div class="input-group">
-            <label for="username">Username:</label>
+        <div class="input-group" style="display: flex; gap: 2rem">
+            <label for="username">Student name:</label>
             <input type="text" id="username" required>
         </div>
-        <div class="input-group">
+        <div class="input-group" style="display: flex; gap: 2rem">
             <label for="password">Password:</label>
             <input type="password" id="password" required>
         </div>
         <div class="button-group">
-            <button type="button" onclick="login()">Login</button>
-            <button type="button" onclick="register()">Register</button>
+            <button type="button" class="log" onclick="login()">Login</button>
+            <button type="button" class="reg" onclick="register()">Register</button>
         </div>
     </form>
 </div>
+
+	<br><br><br><br><br><br><br><br><br><br><br><br><br>
+	<br><br><br><br><br><br><br><br><br><br><br>
+	<center><img src="dhs logo.png" id="dhsLogo"></center>
 
 
     <div id="container">
@@ -110,12 +120,18 @@
                 if (doc.exists && doc.data().password === password) {
                     currentUser = doc.data();
                     checkAuth();
+					document.getElementsByClassName('background-image')[0].style.display = "none";
+					document.getElementsByClassName('cnmsHeader')[0].style.opacity = "0";
+					document.getElementsByClassName('cnmsHeader')[0].style.marginBottom = "-30rem";
+					document.getElementById('dhsLogo').style.display = "none";
                 } else {
                     alert('Invalid username or password');
                 }
             }).catch((error) => {
                 console.log("Error getting document:", error);
             });
+			
+			
         }
 
         function register() {
@@ -215,9 +231,9 @@ function loadChat() {
                     const messageElement = document.createElement('div');
 										
                     if (messageData.text == undefined) {
-                        messageElement.textContent = "(user)" + " " + messageData.username + ": ";
+                        messageElement.textContent = "(student)" + " " + messageData.username + ": ";
                     } else {
-                        messageElement.textContent = "(user)" + " " + messageData.username + ": " + messageData.text;
+                        messageElement.textContent = "(student)" + " " + messageData.username + ": " + messageData.text;
                     }
                             
                     const userLogo = document.createElement('img');
@@ -343,8 +359,7 @@ function handleImageUpload(event) {
         behavior: 'smooth' // This provides a smooth scroll effect
     });
 }
-
-	console.log('changes saved');
+		
 	</script>
 
 </body>
