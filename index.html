@@ -243,6 +243,7 @@ function loadChat() {
                     userLogo.style.height = '1rem';
                     userLogo.style.position = "relative";
                     userLogo.style.top = "0.1rem";
+					userLogo.style.zIndex = "0";
                                 
                     messageElement.appendChild(userLogo);
                     if (messageData.type === 'image') {
@@ -267,26 +268,55 @@ function loadChat() {
 }
 
         function sendMessage() {
-            const chatText = document.getElementById('chatText').value;
-			
-			// check if user is read only
-			if (currentUser.role === "banned") {
-				alert('you are only allowed to view content');
-				return;
-			}
-			
-            if (chatText && currentChannel) {
+    const chatText = document.getElementById('chatText').value;
+
+    // Check if chat text is not empty and a channel is selected
+    if (chatText && currentChannel) {
+        // Check if user is banned
+        checkUserRole(currentUser.username).then(role => {
+            if (role === 'banned') {
+                // Execute banned user code
+                alert("User is banned. Cannot send message.");
+                return; // Stop execution if user is banned
+            } else {
                 // Add new message to Firestore
                 db.collection("channels").doc(currentChannel).collection(`messages${currentQuarter}`).add({
                     username: currentUser.username,
-                    text: chatText 
+                    text: chatText
                 }).then(() => {
-                    document.getElementById('chatText').value = '';
+                    document.getElementById('chatText').value = ''; // Clear chat input
                 }).catch((error) => {
                     console.error("Error adding document: ", error);
                 });
             }
-        }
+        }).catch(error => {
+            console.error("Error checking user role: ", error);
+        });
+    }
+}
+
+// Function to check user role
+function checkUserRole(username) {
+    return new Promise((resolve, reject) => {
+        // Find user in Firestore collection
+        db.collection("users").where("username", "==", username).get()
+            .then(querySnapshot => {
+                if (querySnapshot.empty) {
+                    reject("User not found");
+                } else {
+                    querySnapshot.forEach(doc => {
+                        // Get user role
+                        const role = doc.data().role;
+                        resolve(role);
+                    });
+                }
+            })
+            .catch(error => {
+                reject(error);
+            });
+    });
+}
+
 
         // Function to handle file selection for images
         function selectImage() {
