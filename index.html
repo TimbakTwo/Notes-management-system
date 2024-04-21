@@ -44,6 +44,7 @@
     <div id="container">
         <div id="channels">
             <h3>Subjects list</h3>
+			<button onclick="hideAndShow()">Hide Subject Lists</button>
             <div id="channelList">
                 <!-- Channel list will be populated here -->
             </div>
@@ -53,10 +54,11 @@
         <div id="chatArea">
             <h3 id="currentSubject" >Choose your subject to View Notes</h3>
 			<div id="quartersList">
-				<button onclick="changeQuarter(1)">1st Quarter</button>
-				<button onclick="changeQuarter(2)">2nd Quarter</button>
-				<button onclick="changeQuarter(3)">3rd Quarter</button>
-				<button onclick="changeQuarter(4)">4th Quarter</button>
+				<button onclick="changeQuarter(1)" class="button1stSec">1st Quarter</button>
+				<button onclick="changeQuarter(2)" class="button1stSec">2nd Quarter</button>
+				<button onclick="changeQuarter(3)" class="button2ndSec">3rd Quarter</button>
+				<button onclick="changeQuarter(4)" class="button2ndSec">4th Quarter</button>
+				<button onclick="hideAndShow()" id="show" style="display: none; margin-top: 1rem">Show Subject Lists</button>
 			</div>
             <div id="chatMessages">
                 <!-- Chat messages will be displayed here -->
@@ -271,7 +273,7 @@ function loadChat() {
                 // Add new message to Firestore
                 db.collection("channels").doc(currentChannel).collection(`messages${currentQuarter}`).add({
                     username: currentUser.username,
-                    text: chatText
+                    text: chatText 
                 }).then(() => {
                     document.getElementById('chatText').value = '';
                 }).catch((error) => {
@@ -359,7 +361,69 @@ function handleImageUpload(event) {
         behavior: 'smooth' // This provides a smooth scroll effect
     });
 }
+
 		
+let subjectListStatus = "show";
+function hideAndShow() {
+	if (subjectListStatus == "show") {
+		document.querySelector("#channels").style.display = "none";
+		document.getElementById('show').style.display = "block";
+		subjectListStatus = "hidden";
+		
+		var viewportWidth = window.innerWidth;
+    var chatArea = document.querySelector("#chatArea");
+    
+    if (viewportWidth >= 2560) {
+        chatArea.style.marginLeft = '15rem';
+    } else if (viewportWidth >= 1920) {
+        chatArea.style.marginLeft = '30rem';
+    } else if (viewportWidth >= 1440) {
+        chatArea.style.marginLeft = '8rem';
+    } else if (viewportWidth >= 1024) {
+        chatArea.style.marginLeft = '6rem';
+    } else if (viewportWidth >= 768) {
+        chatArea.style.marginLeft = '0rem';
+    } else if (viewportWidth >= 425) {
+        chatArea.style.marginLeft = '0rem';
+    } else if (viewportWidth >= 375) {
+        chatArea.style.marginLeft = '0rem';
+    }
+	else if (viewportWidth >= 320) {
+        chatArea.style.marginLeft = '0rem';
+    }
+	else {
+        chatArea.style.marginLeft = '10rem';
+    }
+		
+		
+	} else {
+		document.querySelector("#channels").style.display = "block";
+		document.getElementById('show').style.display = "none";
+		subjectListStatus = "show";
+		
+		var viewportWidth = window.innerWidth;
+    var chatArea = document.querySelector("#chatArea");
+    
+    if (viewportWidth >= 2560) {
+        chatArea.style.marginLeft = '34rem';
+    } else if (viewportWidth >= 1920) {
+        chatArea.style.marginLeft = '30rem';
+    } else if (viewportWidth >= 1440) {
+        chatArea.style.marginLeft = '20rem';
+    } else if (viewportWidth >= 1024) {
+        chatArea.style.marginLeft = '15rem';
+    } else if (viewportWidth >= 768) {
+        chatArea.style.marginLeft = '0rem';
+    } else if (viewportWidth >= 480) {
+        chatArea.style.marginLeft = '14rem';
+    } else {
+        chatArea.style.marginLeft = '10rem';
+    }
+		
+		
+		
+	}
+}
 	</script>
 
 </body>
