@@ -268,7 +268,13 @@ function loadChat() {
 
         function sendMessage() {
             const chatText = document.getElementById('chatText').value;
-
+			
+			// check if user is read only
+			if (currentUser.role === "banned") {
+				alert('you are only allowed to view content');
+				return;
+			}
+			
             if (chatText && currentChannel) {
                 // Add new message to Firestore
                 db.collection("channels").doc(currentChannel).collection(`messages${currentQuarter}`).add({
