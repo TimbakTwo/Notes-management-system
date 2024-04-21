@@ -392,7 +392,7 @@ function hideAndShow() {
         chatArea.style.marginLeft = '0rem';
     }
 	else {
-        chatArea.style.marginLeft = '10rem';
+        chatArea.style.marginLeft = '7rem';
     }
 		
 		
@@ -424,6 +424,25 @@ function hideAndShow() {
 		
 	}
 }
+
+
+    window.addEventListener('DOMContentLoaded', function() {
+    function hideOnSmallScreens() {
+        var showElement = document.querySelector("#channels > button:nth-child(2)");
+        if (window.innerWidth <= 768) {
+            showElement.style.display = "block";
+        } else {
+            showElement.style.display = "none";
+        }
+    }
+
+    // Initial call to the function
+    hideOnSmallScreens();
+
+    // Call the function whenever the window size changes
+    window.addEventListener('resize', hideOnSmallScreens);
+});
+
 	</script>
 
 </body>
