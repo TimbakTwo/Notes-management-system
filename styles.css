@@ -156,7 +156,7 @@
             width: 80%;
             padding: 15px;
             background-color: white;
-			margin-left: 20rem;
+			margin-left: 25rem;
 			
 			
         }
@@ -205,7 +205,12 @@
 		}
 		
 		#lightboxImage {
-			height: 1000px;
+			height: auto;
+			width: auto;
+		}
+		
+		#closeLightbox {
+			font-size: 3rem;
 		}
 		
 		#chatMessages > * {
@@ -279,6 +284,90 @@
 		positioN: relative; 
 		top: -4rem;
 	}
+}
+
+@media only screen 
+   and (max-width : 2560px) {
+  #chatArea {
+			margin-left: 32.5rem;						
+        }
+}
+
+@media only screen 
+   and (max-width : 1440px) {
+  #chatArea {
+			margin-left: 20rem;						
+        }
+}
+
+@media only screen 
+   and (max-width : 1024px) {
+  #chatArea {
+			margin-left: 15rem;						
+        }
+}
+
+@media only screen 
+   and (max-width : 768px) {
+  #chatArea {
+			margin-left: 0rem;						
+        }
+}
+
+@media only screen 
+   and (max-width : 425px) {
+  #chatArea {
+			margin-left: 0rem;						
+        }
+		
+	#chatMessages > div {
+		font-size: 1rem;
+	}
+	
+	.button1stSec {
+		margin-bottom: 1rem;
+	}
+}
+
+@media only screen 
+   and (max-width : 375px) {
+  #chatArea {
+			margin-left: 0rem;						
+        }
+		
+	#chatMessages > div {
+		font-size: 1rem;
+	}
+	
+	#chatText {
+		width: 5rem;
+	}
+}
+
+@media only screen 
+   and (max-width : 320px) {
+  #chatArea {
+			margin-left: 0rem;						
+        }
+		
+	#chatMessages > div {
+		font-size: 1rem;
+	}
+	
+	#chatText {
+		width: 5rem;
+	}
+	
+	#chatMessages > div > img {
+		height: 6.5rem;
+	}
+	
+	#loginForm {
+		width: 20rem;
+		right: 10rem;
+	}
+	
+	
 }
 
 
