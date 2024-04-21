@@ -29,6 +29,10 @@
             <label for="password">Password:</label>
             <input type="password" id="password" required>
         </div>
+		<div class="input-group" style="display: flex; gap: 2rem">
+            <label for="roomPassword">Room Password:</label>
+            <input type="password" id="roomPassword">
+        </div>
         <div class="button-group">
             <button type="button" class="log" onclick="login()">Login</button>
             <button type="button" class="reg" onclick="register()">Register</button>
@@ -43,7 +47,7 @@
 
     <div id="container">
         <div id="channels">
-            <h3>Subjects list</h3>
+            <h3 id="subListHeader">Subjects list</h3>
 			<button onclick="hideAndShow()">Hide Subject Lists</button>
             <div id="channelList">
                 <!-- Channel list will be populated here -->
@@ -114,27 +118,44 @@
         }
 
         function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
 
-            // Check if user exists in Firestore
-            db.collection("users").doc(username).get().then((doc) => {
-                if (doc.exists && doc.data().password === password) {
-                    currentUser = doc.data();
-                    checkAuth();
-					document.getElementsByClassName('background-image')[0].style.display = "none";
-					document.getElementsByClassName('cnmsHeader')[0].style.opacity = "0";
-					document.getElementsByClassName('cnmsHeader')[0].style.marginBottom = "-30rem";
-					document.getElementById('dhsLogo').style.display = "none";
+    // Get the room password entered by the user
+    const roomPassword = document.getElementById('roomPassword').value.trim();
+
+    // Check if user exists in Firestore
+    db.collection("users").doc(username).get().then((doc) => {
+        if (doc.exists && doc.data().password === password) {
+            // Check if the entered room password matches the correct password
+            db.collection("f").doc("yvkBNXRnpZ39Y134qbZf").get().then((roomDoc) => {
+                if (roomDoc.exists) {
+                    const correctRoomPassword = roomDoc.data().roomPassword;
+
+                    if (correctRoomPassword === roomPassword) {
+                        currentUser = doc.data();
+                        checkAuth();
+                        document.getElementsByClassName('background-image')[0].style.display = "none";
+                        document.getElementsByClassName('cnmsHeader')[0].style.opacity = "0";
+                        document.getElementsByClassName('cnmsHeader')[0].style.marginBottom = "-30rem";
+                        document.getElementById('dhsLogo').style.display = "none";
+                    } else {
+                        alert('Invalid room password');
+                    }
                 } else {
-                    alert('Invalid username or password');
+                    console.log("Room document not found");
                 }
             }).catch((error) => {
-                console.log("Error getting document:", error);
+                console.log("Error getting room document:", error);
             });
-			
-			
+        } else {
+            alert('Invalid username or password');
         }
+    }).catch((error) => {
+        console.log("Error getting user document:", error);
+    });
+}
+
 
         function register() {
             const username = document.getElementById('username').value;
@@ -163,14 +184,29 @@
 
         function loadChannels() {
             const channelList = document.getElementById('channelList');
-
+			welcome();
             // Fetch channels from Firestore
             db.collection("channels").onSnapshot((snapshot) => {
                 snapshot.docChanges().forEach((change) => {
                     if (change.type === "added") {
                         const channelElement = document.createElement('div');
+						
                         channelElement.textContent = change.doc.data().name;
                         channelElement.onclick = () => { selectChannel(change.doc.data().name); };
+						
+						const renameButton = document.createElement('span');
+						renameButton.innerHTML = "Rename";
+						renameButton.style.background = "lightgreen";
+						if (currentUser.role != "admin") {
+							renameButton.style.display = "none";
+						}					
+						renameButton.onclick = function() {
+							channelElement.contentEditable = "true";
+						};
+
+						channelList.appendChild(renameButton);
+						
+						
                         channelList.appendChild(channelElement);
 						
 						
@@ -320,8 +356,24 @@ function checkUserRole(username) {
 
         // Function to handle file selection for images
         function selectImage() {
-            const imageInput = document.getElementById('imageInput');
+		
+			// Check if chat text is not empty and a channel is selected
+    if (chatText && currentChannel) {
+        // Check if user is banned
+        checkUserRole(currentUser.username).then(role => {
+            if (role === 'banned') {
+                // Execute banned user code
+                alert("User is banned. Cannot send images.");
+                return; // Stop execution if user is banned
+            } else {
+                 const imageInput = document.getElementById('imageInput');
             imageInput.click();
+            }
+        }).catch(error => {
+            console.error("Error checking user role: ", error);
+        });
+    }
+	
         }
 
 function handleImageUpload(event) {
@@ -478,6 +530,16 @@ function hideAndShow() {
     // Call the function whenever the window size changes
     window.addEventListener('resize', hideOnSmallScreens);
 });
+
+function welcome() {
+	if (currentUser.role == "admin" || currentUser.username == "admin") {
+		document.getElementById('subListHeader').innerHTML = `<span style="color: green"><span style="color: red">Admin</span> [${JSON.stringify(currentUser.username)}]</span><br><br>Subjects List`;
+	} else {
+		document.getElementById('subListHeader').innerHTML = `<span style="color: green">Student [${JSON.stringify(currentUser.username)}]</span><br><br>Subjects List`;
+	}
+	
+}
+
 
 	</script>
 
