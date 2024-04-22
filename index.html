@@ -170,7 +170,7 @@
                     db.collection("users").doc(username).set({
                         username: username,
                         password: password,
-                        role: 'member' // Default role for new users
+                        role: 'student' // Default role for new users
                     }).then(() => {
                         alert('User registered. You can now login.');
                     }).catch((error) => {
@@ -267,69 +267,124 @@ function loadChat() {
                 if (change.type === "added") {
                     const messageData = change.doc.data();
                     const messageElement = document.createElement('div');
-										
-                    if (messageData.text == undefined) {
-                        messageElement.textContent = "(student)" + " " + messageData.username + ": ";
-                    } else {
-                        messageElement.textContent = "(student)" + " " + messageData.username + ": " + messageData.text;
-                    }
-                            
-                    const userLogo = document.createElement('img');
-                    userLogo.src = "user.png";
-                    userLogo.style.height = '1rem';
-                    userLogo.style.position = "relative";
-                    userLogo.style.top = "0.1rem";
-					userLogo.style.zIndex = "0";
-                                
-                    messageElement.appendChild(userLogo);
-                    if (messageData.type === 'image') {
-                        const imageElement = document.createElement('img');
-                        imageElement.src = messageData.url;
-                        imageElement.style.maxWidth = '100%';
-                        // Add click event listener to display lightbox
-                        imageElement.addEventListener('click', function() {
-                            displayLightbox(messageData.url);
+
+                    // Fetch the role of the sender
+                    checkUserRole(messageData.username).then(role => {
+                        let senderDisplayName = ` (${role}) `;
+                        senderDisplayName += messageData.username;
+
+                        if (messageData.text) {
+                            // If the message contains text
+                            messageElement.textContent = senderDisplayName + ": " + messageData.text;
+                        } else if (messageData.imageURL) {
+                            // If the message contains an image
+                            const imageElement = document.createElement('img');
+                            imageElement.src = messageData.imageURL;
+                            imageElement.classList.add('chat-image');
+                            messageElement.appendChild(imageElement);
+
+                            // Add sender's role and username before the image
+                            const senderInfo = document.createElement('span');
+                            senderInfo.textContent = senderDisplayName;
+                            messageElement.insertBefore(senderInfo, imageElement);
+                        } else if (messageData.type === 'image' && messageData.url) {
+                            // If the message contains an image uploaded via file input
+                            const imageElement = document.createElement('img');
+                            imageElement.src = messageData.url;
+                            imageElement.classList.add('chat-image');
+                            messageElement.appendChild(imageElement);
+
+                            // Add sender's role and username before the image
+                            const senderInfo = document.createElement('span');
+                            senderInfo.textContent = senderDisplayName;
+                            messageElement.insertBefore(senderInfo, imageElement);
+                        }
+
+                        // Add an 'approve' class to messages that need approval
+                        if (!messageData.approve) {
+                            messageElement.classList.add('approve');
+                        }
+
+                        // Set opacity for messages that need approval and user is admin
+                        if (currentUser.role === 'admin' && !messageData.approve) {
+                            messageElement.style.opacity = '0.5';
+                        }
+
+                        // Hide messages that need approval and user is not admin
+                        if (currentUser.role !== 'admin' && !messageData.approve) {
+                            messageElement.style.display = 'none';
+                        }
+
+                        messageElement.addEventListener('click', function() {
+                            // If user is admin and the message needs approval
+                            if (currentUser.role === 'admin' && !messageData.approve) {
+                                // Confirmation dialog
+                                const approveMessage = confirm("Do you want to approve this message?");
+                                if (approveMessage) {
+                                    // Set approve to true in Firestore
+                                    db.collection("channels").doc(currentChannel).collection(`messages${currentQuarter}`).doc(change.doc.id).update({
+                                        approve: true
+                                    }).then(() => {
+                                        alert("Message approved.");
+                                        messageElement.style.opacity = '1'; // Change opacity to 1
+                                    }).catch((error) => {
+                                        console.error("Error updating document: ", error);
+                                    });
+                                }
+                            }
                         });
-                        messageElement.appendChild(imageElement);
-                    }
-                    chatMessages.appendChild(messageElement);
-					
-                    setTimeout(function() {
-                        scrollToBottom();
-                    },10);
+
+                        chatMessages.appendChild(messageElement);
+
+                        setTimeout(function() {
+                            scrollToBottom();
+                        }, 10);
+                    }).catch(error => {
+                        console.error("Error fetching user role: ", error);
+                    });
                 }
             });
         });
     }
 }
 
-        function sendMessage() {
+
+
+
+
+
+
+       function sendMessage() {
     const chatText = document.getElementById('chatText').value;
 
     // Check if chat text is not empty and a channel is selected
     if (chatText && currentChannel) {
-        // Check if user is banned
+        // Check user role
         checkUserRole(currentUser.username).then(role => {
-            if (role === 'banned') {
-                // Execute banned user code
-                alert("User is banned. Cannot send message.");
-                return; // Stop execution if user is banned
-            } else {
-                // Add new message to Firestore
-                db.collection("channels").doc(currentChannel).collection(`messages${currentQuarter}`).add({
-                    username: currentUser.username,
-                    text: chatText
-                }).then(() => {
-                    document.getElementById('chatText').value = ''; // Clear chat input
-                }).catch((error) => {
-                    console.error("Error adding document: ", error);
-                });
+            let approveValue = false; // Default value for members
+
+            if (role != 'member') {
+                // For roles other than member, set approve to true
+                approveValue = true;
             }
+
+            // Add new message to Firestore with the "approve" field
+            db.collection("channels").doc(currentChannel).collection(`messages${currentQuarter}`).add({
+                username: currentUser.username,
+                text: chatText,
+                approve: approveValue
+            }).then(() => {
+                document.getElementById('chatText').value = ''; // Clear chat input
+            }).catch((error) => {
+                console.error("Error adding document: ", error);
+            });
         }).catch(error => {
             console.error("Error checking user role: ", error);
         });
     }
 }
+
+
 
 // Function to check user role
 function checkUserRole(username) {
@@ -535,7 +590,7 @@ function welcome() {
 	if (currentUser.role == "admin" || currentUser.username == "admin") {
 		document.getElementById('subListHeader').innerHTML = `<span style="color: green"><span style="color: red">Admin</span> [${JSON.stringify(currentUser.username)}]</span><br><br>Subjects List`;
 	} else {
-		document.getElementById('subListHeader').innerHTML = `<span style="color: green">Student [${JSON.stringify(currentUser.username)}]</span><br><br>Subjects List`;
+		document.getElementById('subListHeader').innerHTML = `<span style="color: green">${currentUser.role} [${JSON.stringify(currentUser.username)}]</span><br><br>Subjects List`;
 	}
 	
 }
