@@ -5,15 +5,16 @@
     <title>Class Notes Management System</title>
     	<link rel="stylesheet" href="styles.css">
 	<link rel="stylesheet" href="login and register design.css">
+	<link rel="stylesheet" href="scrollBar.css">
 	<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-
+	
 </head>
 
 <body>
-	<div class="background-image" style="background-image: url('background system.jpg'); filter: blur(3px)"></div>
+	<div class="background-image" style="background-image: url('background system.jpg');"></div>
 
 	<center>
-    <h1 class="cnmsHeader" style="background: none">Class Notes Management System</h1>
+    <h1 class="cnmsHeader" style="background: none;">Class Notes Management System</h1>
     </center>
 
     
@@ -55,8 +56,12 @@
             <input type="text" id="newChannel" placeholder="New subject name">
             <button onclick="addChannel()">Add Subject</button>
         </div>
+		
         <div id="chatArea">
-            <h3 id="currentSubject" >Choose your subject to View Notes</h3>
+		
+			<div id="subjectInfo">
+			
+            <h3 id="currentSubject" style="color: white;">Choose your subject to View Notes</h3>
 			<div id="quartersList">
 				<button onclick="changeQuarter(1)" class="button1stSec">1st Quarter</button>
 				<button onclick="changeQuarter(2)" class="button1stSec">2nd Quarter</button>
@@ -64,6 +69,9 @@
 				<button onclick="changeQuarter(4)" class="button2ndSec">4th Quarter</button>
 				<button onclick="hideAndShow()" id="show" style="display: none; margin-top: 1rem">Show Subject Lists</button>
 			</div>
+			
+			</div>
+			
             <div id="chatMessages">
                 <!-- Chat messages will be displayed here -->
             </div>
@@ -74,6 +82,7 @@
                 <button onclick="sendMessage()">Send</button>
             </div>
         </div>
+		
     </div>
 	
 	 <!-- Lightbox container -->
@@ -135,12 +144,12 @@
                     if (correctRoomPassword === roomPassword) {
                         currentUser = doc.data();
                         checkAuth();
-                        document.getElementsByClassName('background-image')[0].style.display = "none";
+                        document.getElementsByClassName('background-image')[0].style.backgroundImage = "url('background system.jpg')";
                         document.getElementsByClassName('cnmsHeader')[0].style.opacity = "0";
                         document.getElementsByClassName('cnmsHeader')[0].style.marginBottom = "-30rem";
                         document.getElementById('dhsLogo').style.display = "none";
 						document.body.style.background = "white";
-						
+											
                     } else {
                         alert('Invalid room password');
                     }
@@ -201,7 +210,10 @@
 						renameButton.style.background = "lightgreen";
 						if (currentUser.role != "admin") {
 							renameButton.style.display = "none";
-						}					
+						}
+						
+						renameButton.style.display = "none"; // Maybe temp remove rename
+						
 						renameButton.onclick = function() {
 							channelElement.contentEditable = "true";
 						};
@@ -507,10 +519,10 @@ function handleImageUpload(event) {
 		});
 		
 		function scrollToBottom() {
-    window.scrollTo({
-        top: document.body.scrollHeight,
-        behavior: 'smooth' // This provides a smooth scroll effect
-    });
+    // Assuming you have an element with an id of "charArea" that has overflow-y: scroll enabled
+var charArea = document.getElementById("chatArea");
+chatArea.scrollTop = chatArea.scrollHeight;
+
 }
 
 		
@@ -596,9 +608,9 @@ function hideAndShow() {
 
 function welcome() {
 	if (currentUser.role == "admin" || currentUser.username == "admin") {
-		document.getElementById('subListHeader').innerHTML = `<span style="color: green"><span style="color: red">Admin</span> [${JSON.stringify(currentUser.username)}]</span><br><br>Subjects List`;
+		document.getElementById('subListHeader').innerHTML = `<span style="color: green; border: 2px solid rgba(255, 255, 255, 0.2); padding: 1rem"><span style="color: red">Admin</span> [${JSON.stringify(currentUser.username)}]</span><br><br>Subjects List`;
 	} else {
-		document.getElementById('subListHeader').innerHTML = `<span style="color: green">${currentUser.role} [${JSON.stringify(currentUser.username)}]</span><br><br>Subjects List`;
+		document.getElementById('subListHeader').innerHTML = `<span style="color: green; background: rgba(255, 255, 255, 0.2)">${currentUser.role} [${JSON.stringify(currentUser.username)}]</span><br><br>Subjects List`;
 	}
 	
 }
