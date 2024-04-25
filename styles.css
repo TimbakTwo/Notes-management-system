@@ -1,12 +1,12 @@
-
-        /* CSS styles for the page (same as the previous example) */
+	
+    /* CSS styles for the page (same as the previous example) */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: #f4f4f4;
             color: #333;
-			
+			background: #531019;
 			
         }
 
@@ -154,11 +154,11 @@
         }
 
         #chatArea {
-            width: 80%;
+            width: 65%;
             padding: 15px;
             background-color: white;
 			margin-left: 25rem;
-			
+			border: 3px solid lightgray;
 			
         }
 
@@ -222,6 +222,29 @@
 			font-size: 2rem;
 			
 		}
+		
+		#chatMessages > div > span {
+    width: 9rem;
+}
+
+#chatMessages > div > img {
+	border: 2px solid lightgray;
+}
+
+#chatMessages > div > img:hover {
+	background-color: rgba(128, 128, 128, 0.1);
+	cursor: pointer;
+	filter: brightness(1.05);
+}
+
+#lightboxImage {
+	border: 2px solid lightgray;
+	background: rgba(128, 128, 128, 0.1);
+}
+
+#channels > button:nth-child(2) {
+	margin-bottom: 1rem;
+}
 
 #quartersList {
 	margin-bottom: 2rem;
@@ -257,6 +280,11 @@
     letter-spacing: 1px;
 }
 
+.chat-image {
+	max-width: 12rem;
+	min-width: 12rem;
+	margin-left: 1rem;
+}
 
 
 
@@ -290,14 +318,16 @@
 @media only screen 
    and (max-width : 2560px) {
   #chatArea {
-			margin-left: 32.5rem;						
+			margin-left: 32.5rem;
+				width: 85%;
         }
 }
 
 @media only screen 
    and (max-width : 1440px) {
   #chatArea {
-			margin-left: 20rem;						
+			margin-left: 20rem;	
+			width: 75%
         }
 }
 
@@ -311,7 +341,8 @@
 @media only screen 
    and (max-width : 768px) {
   #chatArea {
-			margin-left: 0rem;						
+			margin-left: 0rem;	
+			width: 100%;
         }
 }
 
@@ -360,15 +391,20 @@
 	}
 	
 	#chatMessages > div > img {
-		height: 6.5rem;
+		
+		max-width: 8rem;
+		min-width: 8rem;
+		max-height: 8rem;
+		min-height: 8rem;
 	}
 	
-	#loginForm {
-		width: 20rem;
-		right: 10rem;
-	}
+	
+	
+	
+	
 	
 	
 }
+
 
 
