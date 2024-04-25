@@ -139,6 +139,8 @@
                         document.getElementsByClassName('cnmsHeader')[0].style.opacity = "0";
                         document.getElementsByClassName('cnmsHeader')[0].style.marginBottom = "-30rem";
                         document.getElementById('dhsLogo').style.display = "none";
+						document.body.style.background = "white";
+						
                     } else {
                         alert('Invalid room password');
                     }
@@ -281,6 +283,9 @@ function loadChat() {
                             const imageElement = document.createElement('img');
                             imageElement.src = messageData.imageURL;
                             imageElement.classList.add('chat-image');
+                            imageElement.addEventListener('click', function() {
+                                displayLightbox(messageData.imageURL); // Call displayLightbox function when image is clicked
+                            });
                             messageElement.appendChild(imageElement);
 
                             // Add sender's role and username before the image
@@ -292,6 +297,9 @@ function loadChat() {
                             const imageElement = document.createElement('img');
                             imageElement.src = messageData.url;
                             imageElement.classList.add('chat-image');
+                            imageElement.addEventListener('click', function() {
+                                displayLightbox(messageData.url); // Call displayLightbox function when image is clicked
+                            });
                             messageElement.appendChild(imageElement);
 
                             // Add sender's role and username before the image
