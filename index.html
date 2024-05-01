@@ -8,6 +8,13 @@
 	<link rel="stylesheet" href="scrollBar.css">
 	<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 	
+	<style>
+		.highlighted {
+    color: blue;
+	display: inline;
+    
+}
+	</style>
 </head>
 
 <body>
@@ -47,6 +54,7 @@
 
 
     <div id="container">
+		
         <div id="channels">
             <h3 id="subListHeader">Subjects list</h3>
 			<button onclick="hideAndShow()">Hide Subject Lists</button>
@@ -82,6 +90,7 @@
                 <button onclick="selectImage()">Add Image</button>
                 <input type="file" id="imageInput" style="display: none;" accept="image/*" multiple onchange="handleImageUpload(event)">
                 <button onclick="sendMessage()">Send</button>
+				<button onclick="search()">Search</button>
             </div>
         </div>
 		
@@ -138,6 +147,16 @@
     // Check if user exists in Firestore
     db.collection("users").doc(username).get().then((doc) => {
         if (doc.exists && doc.data().password === password) {
+            // Set login status and user information in localStorage
+            localStorage.setItem('login', '1');
+            localStorage.setItem('username', username);
+            localStorage.setItem('password', password);
+
+            // Fill the room password with 'tvl5' if empty
+            if (roomPassword === '') {
+                document.getElementById('roomPassword').value = 'tvl5';
+            }
+
             // Check if the entered room password matches the correct password
             db.collection("f").doc("yvkBNXRnpZ39Y134qbZf").get().then((roomDoc) => {
                 if (roomDoc.exists) {
@@ -150,8 +169,9 @@
                         document.getElementsByClassName('cnmsHeader')[0].style.opacity = "0";
                         document.getElementsByClassName('cnmsHeader')[0].style.marginBottom = "-30rem";
                         document.getElementById('dhsLogo').style.display = "none";
-						document.body.style.background = "white";
-											
+                        document.body.style.background = "white";
+						
+					
                     } else {
                         alert('Invalid room password');
                     }
@@ -168,6 +188,7 @@
         console.log("Error getting user document:", error);
     });
 }
+
 
 
         function register() {
@@ -612,12 +633,87 @@ function hideAndShow() {
 
 function welcome() {
 	if (currentUser.role == "admin" || currentUser.username == "admin") {
-		document.getElementById('subListHeader').innerHTML = `<span style="color: green; border: 2px solid rgba(255, 255, 255, 0.2); padding: 1rem"><span style="color: red">Admin</span> [${JSON.stringify(currentUser.username)}]</span><br><br>Subjects List`;
+		document.getElementById('subListHeader').innerHTML = `<span style="color: white; border: 2px solid rgba(255, 255, 255, 0.2); padding: 1rem"><span style="color: red">Admin</span> [${JSON.stringify(currentUser.username)}]</span><span onclick="logout()" style="margin-left: 2rem; background: lightgreen; color: black; padding: 1rem">logout</span><br><br>Subjects List`;
 	} else {
-		document.getElementById('subListHeader').innerHTML = `<span style="color: green; background: rgba(255, 255, 255, 0.2)">${currentUser.role} [${JSON.stringify(currentUser.username)}]</span><br><br>Subjects List`;
+		document.getElementById('subListHeader').innerHTML = `<span style="color: white; background: rgba(255, 255, 255, 0.2)">${currentUser.role} [${JSON.stringify(currentUser.username)}]</span><br><br>Subjects List`;
 	}
+
+}
+
+function search() {
+    // Function to scroll to an element
+function scrollToElement(element) {
+    element.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
+}
+
+
+    // Function to search for text in chat messages
+    function searchAndScroll(searchText) {
+        // Loop through each chat message
+        for (let i = 0; i < document.querySelectorAll("#chatMessages > div").length; i++) {
+            // Select the current chat message
+            const message = document.querySelector(`#chatMessages > div:nth-child(${i + 1})`);
+            // Check if the innerHTML of the message contains the text
+            if (message.innerHTML.includes(searchText)) {
+                // Scroll to the message
+                scrollToElement(message);
+                // Highlight the matched text
+                const regex = new RegExp(searchText, "gi");
+                message.innerHTML = message.innerHTML.replace(regex, '<mark class="highlighted">$&</mark>');
+                // Alert that the text is found
+				
+		
+
+
+
+
+				
+                alert("Text found in the chat message!");
+                // Break the loop as we found the text
+				
+                return;
+            }
+        }
+        // Alert if text is not found
+        alert("Text not found in any chat message.");
+    }
+
+    // Prompt the user for input
+    const searchNote = prompt("Enter a keyword to search in chat messages:");
+
+    // Call searchAndScroll function with the user input
+    searchAndScroll(searchNote);
+	
 	
 }
+
+function logout() {
+			localStorage.setItem('login', '0');
+            localStorage.setItem('username', "");
+            localStorage.setItem('password', "");
+			window.location.reload();
+}
+
+function autoLogin() {
+    if (localStorage.getItem('login') === '1') {
+        document.querySelector("#username").value = localStorage.getItem('username');
+        document.querySelector("#password").value = localStorage.getItem('password');
+        document.querySelector("#roomPassword").value = "tvl5";
+        login();
+		document.querySelector("#username").value = "";
+        document.querySelector("#password").value = "";
+		document.querySelector("#roomPassword").value = "";
+    }
+}
+
+autoLogin();
+
+
+
+
+
+
+
 
 
 	</script>
