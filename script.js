@@ -1,3 +1,5 @@
+alert('test');
+
 // Create a new script element
 const script = document.createElement('script');
 
